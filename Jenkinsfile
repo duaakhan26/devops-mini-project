@@ -9,7 +9,7 @@ pipeline {
                     checkout([$class: 'GitSCM', 
                         branches: [[name: "*/${env.BRANCH_NAME}"]],
                         userRemoteConfigs: [[
-                            url: 'git@github.com:spaceboi21/devops-mini-project.git',
+                            url: 'git@github.com:duaakhan26/devops-mini-project.git',
                             credentialsId: 'GITHUB_SSH_KEY' // Replace with the ID of your Jenkins SSH credentials
                         ]]
                     ])
