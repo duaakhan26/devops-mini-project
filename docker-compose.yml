@@ -21,15 +21,16 @@ services:
 
   jenkins:
     image: jenkins/jenkins:lts-jdk11
-    # or you can try "jenkins/jenkins:lts" if you want the latest LTS with Java 11
     user: root
     ports:
       - "8080:8080"       # Jenkins UI
-      - "50000:50000"     # For Jenkins agents, if you use distributed builds
+      - "50000:50000"     # For Jenkins agents
     volumes:
       - jenkins_home:/var/jenkins_home
-      # (Optional) Mount Docker socket if Jenkins needs to build Docker images
       - /var/run/docker.sock:/var/run/docker.sock
+      - ~/.ssh:/root/.ssh:ro # Mount local SSH configuration into Jenkins container
+    environment:
+      - JAVA_OPTS=-Djenkins.install.runSetupWizard=false # Disable Jenkins setup wizard (Optional)
     restart: always
 
 volumes:

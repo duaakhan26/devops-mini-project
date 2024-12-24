@@ -14,7 +14,7 @@ RUN npm install
 COPY . .
 
 # *** Build the React app ***
-RUN npm run build
+RUN npm run build-react
 
 # The final build files are now in /app/build
 
@@ -23,3 +23,4 @@ EXPOSE 3000
 
 # Start your Node/Express server
 CMD ["npm", "start"]
+
