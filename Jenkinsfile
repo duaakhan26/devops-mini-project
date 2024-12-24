@@ -6,11 +6,11 @@ pipeline {
             steps {
                 script {
                     // Use SSH to pull from your GitHub repository
-                    checkout([$class: 'GitSCM', 
+                    checkout([$class: 'GitSCM',
                         branches: [[name: "*/${env.BRANCH_NAME}"]],
                         userRemoteConfigs: [[
                             url: 'git@github.com:duaakhan26/devops-mini-project.git',
-                            credentialsId: 'GITHUB_SSH_KEY' // Replace with the ID of your Jenkins SSH credentials
+                            credentialsId: 'GITHUB_KEY_SSH' // Updated to the correct Jenkins SSH credentials
                         ]]
                     ])
                 }
@@ -28,17 +28,9 @@ pipeline {
             steps {
                 script {
                     echo "Building Docker image for branch: ${env.BRANCH_NAME}"
-
-                    // Build the Docker image locally (on your Jenkins host or dev server)
                     sh """
                       docker build -t my-node-app:${env.BRANCH_NAME} .
                     """
-
-                    // (Optional) Uncomment if pushing to a Docker registry:
-                    // sh """
-                    //   docker tag my-node-app:${env.BRANCH_NAME} your-dockerhub-user/my-node-app:${env.BRANCH_NAME}
-                    //   docker push your-dockerhub-user/my-node-app:${env.BRANCH_NAME}
-                    // """
                 }
             }
         }
@@ -50,11 +42,9 @@ pipeline {
             steps {
                 script {
                     echo "Deploying to Dev environment..."
-
-                    // SSH into Dev instance and deploy
-                    sshagent (credentials: ['DEV_SSH_KEY']) {
+                    sshagent (credentials: ['DEV_KEY_SSH']) {
                         sh """
-                          ssh -o StrictHostKeyChecking=no ubuntu@ec2-16-170-223-61.eu-north-1.compute.amazonaws.com \\
+                          ssh -i "devops-mini-project.pem" -o StrictHostKeyChecking=no ubuntu@ec2-16-171-111-82.eu-north-1.compute.amazonaws.com \\
                           'docker stop app_dev || true && docker rm app_dev || true && \\
                            docker run -d --name app_dev -p 3000:3000 my-node-app:dev'
                         """
@@ -70,11 +60,9 @@ pipeline {
             steps {
                 script {
                     echo "Deploying to Testing environment..."
-
-                    // SSH into Testing instance and deploy
-                    sshagent (credentials: ['DEV_SSH_KEY']) {
+                    sshagent (credentials: ['DEV_KEY_SSH']) {
                         sh """
-                          ssh -o StrictHostKeyChecking=no ubuntu@ec2-51-20-109-124.eu-north-1.compute.amazonaws.com \\
+                          ssh -i "devops-mini-project.pem" -o StrictHostKeyChecking=no ubuntu@ec2-51-20-192-98.eu-north-1.compute.amazonaws.com \\
                           'docker stop app_testing || true && docker rm app_testing || true && \\
                            docker run -d --name app_testing -p 3000:3000 my-node-app:testing'
                         """
@@ -90,11 +78,9 @@ pipeline {
             steps {
                 script {
                     echo "Running automated tests on the Testing environment..."
-
-                    // Run tests inside the Testing container
-                    sshagent (credentials: ['DEV_SSH_KEY']) {
+                    sshagent (credentials: ['DEV_KEY_SSH']) {
                         sh """
-                          ssh -o StrictHostKeyChecking=no ubuntu@ec2-51-20-109-124.eu-north-1.compute.amazonaws.com \\
+                          ssh -i "devops-mini-project.pem" -o StrictHostKeyChecking=no ubuntu@ec2-51-20-192-98.eu-north-1.compute.amazonaws.com \\
                           'docker exec app_testing npm test'
                         """
                     }
@@ -112,13 +98,11 @@ pipeline {
             steps {
                 script {
                     echo "All tests passed. Merging from testing to main..."
-
-                    // (Optional) Uncomment to automatically merge 'testing' into 'main'
-                    // This requires separate Git credentials with commit/push permissions
-                    // sshagent (credentials: ['GIT_CREDENTIALS']) {
+                    // Uncomment if automatic merging is needed
+                    // sshagent (credentials: ['GITHUB_KEY_SSH']) {
                     //     sh """
-                    //       git config user.name 'spaceboi21'
-                    //       git config user.email 'ma_abbas2001@hotmail.com'
+                    //       git config user.name 'duaakhan26'
+                    //       git config user.email 'your_email@example.com'
                     //       git checkout main
                     //       git merge origin/testing
                     //       git push origin main
@@ -138,11 +122,9 @@ pipeline {
             steps {
                 script {
                     echo "Deploying to Staging environment..."
-
-                    // SSH into Staging instance and deploy
-                    sshagent (credentials: ['DEV_SSH_KEY']) {
+                    sshagent (credentials: ['DEV_KEY_SSH']) {
                         sh """
-                          ssh -o StrictHostKeyChecking=no ubuntu@ec2-51-20-137-150.eu-north-1.compute.amazonaws.com \\
+                          ssh -i "devops-mini-project.pem" -o StrictHostKeyChecking=no ubuntu@ec2-13-61-151-244.eu-north-1.compute.amazonaws.com \\
                           'docker stop app_staging || true && docker rm app_staging || true && \\
                            docker run -d --name app_staging -p 3000:3000 my-node-app:main'
                         """
